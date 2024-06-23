@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function Form({ onAddItems, onDeleteItem }) {
+function Form({ onAddItems }) {
 
     const [description, setDescription] = useState("");
     const [quantity, setQuantity] = useState(1);
