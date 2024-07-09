@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './index.css'
 const tempMovieData = [
   {
@@ -50,33 +50,99 @@ const tempWatchedData = [
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+const KEY = "bd168ed6";
+
+
 function App() {
 
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
-  
+  const [query, setQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const tempQuery = "jawan";
+
+  useEffect(
+    function () {
+
+      async function fetchMovies() {
+        try {
+          setIsLoading(true);
+          setError("");
+
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+
+          );
+
+          if (!res.ok)
+            throw new Error("Something went wrong with fetching movies");
+
+          const data = await res.json();
+          if (data.Response === "False") throw new Error("Movie not found");
+
+          setMovies(data.Search);
+
+        } catch (err) {
+
+          console.error(err.message);
+          setError(err.message);
+
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+
+      fetchMovies();
+
+    },
+    [query]
+  );
+
   return (
     <>
       <NavBar>
         <Logo />
-        <Search />
+        <Search query={query} setQuery={setQuery} />
         <NumResult movies={movies} />
       </NavBar>
       <Main>
         <Box>
-          <MovieList movies={movies} />
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
         </Box>
-       <Box>
-        <>
-          <WatchedSummary watched={watched}/>
-          <WatchedMoviesList watched={watched}/>
-        </>
-       </Box>
+        <Box>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
       </Main>
     </>
   )
 }
 
+function Loader() {
+  return (
+    <p className='loader'>
+      Loading...
+    </p>
+  )
+}
+
+function ErrorMessage({ message }) {
+  return (
+    <p className='error'>
+      <span>❗</span> {message}
+    </p>
+  )
+}
 function NavBar({ children }) {
   return (
     <nav className='nav-bar'>
@@ -94,9 +160,8 @@ function Logo() {
   );
 }
 
-function Search() {
+function Search({query, setQuery}) {
 
-  const [query, setQuery] = useState("")
   return (
     <div>
       <input
@@ -138,7 +203,7 @@ function Box({ children }) {
         {isOpen ? "-" : "+"}
       </button>
 
-      {isOpen &&  children }
+      {isOpen && children}
     </div>
   )
 }
