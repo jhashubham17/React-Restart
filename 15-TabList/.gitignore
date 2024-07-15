@@ -1,4 +1,4 @@
-node-modules
+node_modules
 .eslintrc.cjs
 index.html
 package-lock.json
