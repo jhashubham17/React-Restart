@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import StarRating from './StarRating.jsx'
 import './index.css'
 
+
 function Text(){
 
   const [movieRating, setMovieRating] = useState(0);
